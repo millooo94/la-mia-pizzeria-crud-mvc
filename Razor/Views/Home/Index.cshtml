@@ -1,0 +1,91 @@
+﻿<div style="background-color: red; color: white; font-weight: bold; text-align: center">SNACK 1</div>
+
+@{
+    var fname = "Camillo";
+    var lname = "Musmeci";
+}
+
+<h2>@fname @lname</h2>
+
+<div style="background-color: red; color: white; font-weight: bold; text-align: center">SNACK 2</div>
+
+@functions{
+    public int sum(int max)
+    {
+        var start = 0;
+
+        for(var i = 1; i <= max; i++)
+        {
+            start += i;
+        }
+
+        return start;
+    }
+}
+
+<span>@sum(3)</span>
+
+<div style="background-color: red; color: white; font-weight: bold; text-align: center">SNACK 3</div>
+
+@{
+    var str = "nel mezzo del cammin di nostra vita";
+    int count = 0;
+
+    foreach(char c in str)
+    {
+        if (c == 'a')
+        {
+            count++;
+        }
+    }
+}
+
+<div>@count</div>
+
+<div style="background-color: red; color: white; font-weight: bold; text-align: center">SNACK 4</div>
+
+@{
+    List<int> numbers = new List<int>();
+
+    for(var i = 0; i < 20; i++)
+    {
+        Random random = new Random();
+        int randomNumber = random.Next(1, 91);
+        numbers.Add(randomNumber);
+    }
+
+    foreach(int number in numbers)
+    {
+        if (number >= 20 && number <= 70)
+        {
+            <div>@number</div>
+        }
+    }
+}
+
+<div style="background-color: red; color: white; font-weight: bold; text-align: center">SNACK 5</div>
+
+<div>
+    @DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")
+</div>
+
+<div style="background-color: red; color: white; font-weight: bold; text-align: center">SNACK 6A</div>
+
+<div>
+    @DateTime.Now.AddDays(-7);
+</div>
+
+<div style="background-color: red; color: white; font-weight: bold; text-align: center">SNACK 6B</div>
+
+<div>
+    @DateTime.Now.ToString("dddd")
+</div>
+
+<div style="background-color: red; color: white; font-weight: bold; text-align: center">SNACK 6C</div>
+
+<div>
+    @DateTime.Now.AddYears(1).ToString("dddd")
+</div>
+
+
+
