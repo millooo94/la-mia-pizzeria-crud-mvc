@@ -120,7 +120,7 @@ namespace la_mia_pizzeria_static.Controllers
 
 			if (savedPizza is null)
 			{
-				return View("NotFound");
+				return NotFound($"Pizza with id {id} not found.");
 			}
 
 			savedPizza.Name = form.Pizza.Name;
@@ -137,34 +137,22 @@ namespace la_mia_pizzeria_static.Controllers
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public IActionResult Delete(int id, PizzaFormModel form)
+		public IActionResult Delete(int id)
 		{
-			if (!ModelState.IsValid)
-			{
-				form.Categories = _context.Categories.ToArray();
-				form.Ingredients = _context.Ingredients.Select(i => new SelectListItem(i.Name, i.Id.ToString())).ToArray();
+			var pizzaToDelete = _context.Pizzas.FirstOrDefault(p => p.Id == id);
 
-				return View(form);
+			if (pizzaToDelete is null)
+			{
+				return NotFound($"Pizza with id {id} not found.");
 			}
 
-			var savedPizza = _context.Pizzas.Include(p => p.Ingredients).FirstOrDefault(i => i.Id == id);
-
-			if (savedPizza is null)
-			{
-				return View("NotFound");
-			}
-
-			savedPizza.Name = form.Pizza.Name;
-			savedPizza.Description = form.Pizza.Description;
-			savedPizza.Img = form.Pizza.Img;
-			savedPizza.CategoryId = form.Pizza.CategoryId;
-			savedPizza.Ingredients = form.SelectedIngredients.Select(si => _context.Ingredients.First(i => i.Id == Convert.ToInt32(si))).ToList();
-
+			_context.Pizzas.Remove(pizzaToDelete);
 			_context.SaveChanges();
 
 			return RedirectToAction("Index");
 		}
 
+
 	}
-    
+
 }
