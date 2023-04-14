@@ -2,6 +2,7 @@
 using la_mia_pizzeria_static.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace la_mia_pizzeria_static.Controllers
 {
@@ -37,7 +38,8 @@ namespace la_mia_pizzeria_static.Controllers
         {
             var pizza = _context.Pizzas
                 .Include (p => p.Category)
-                .SingleOrDefault(p => p.Id == id);
+				.Include(p => p.Ingredients)
+				.SingleOrDefault(p => p.Id == id);
 
             if (pizza is null)
             {
@@ -51,7 +53,8 @@ namespace la_mia_pizzeria_static.Controllers
             var formModel = new PizzaFormModel()
             {
                 Categories = _context.Categories.ToArray(),
-            };
+				Ingredients = _context.Ingredients.Select(i => new SelectListItem(i.Name, i.Id.ToString())).ToArray()
+			};
 
             return View(formModel);
         }
@@ -63,8 +66,12 @@ namespace la_mia_pizzeria_static.Controllers
             if (!ModelState.IsValid)
             {
                 form.Categories = _context.Categories.ToArray();
+				form.Ingredients = _context.Ingredients.Select(i => new SelectListItem(i.Name, i.Id.ToString())).ToArray();
+
 				return View(form);
             }
+
+			form.Pizza.Ingredients = form.SelectedIngredients.Select(si => _context.Ingredients.First(i => i.Id == Convert.ToInt32(si))).ToList();
 
 			_context.Pizzas.Add(form.Pizza);
 			_context.SaveChanges();
@@ -74,7 +81,7 @@ namespace la_mia_pizzeria_static.Controllers
 
         public ActionResult Update(int id)
         {
-			var pizza = _context.Pizzas.SingleOrDefault(p => p.Id == id);
+			var pizza = _context.Pizzas.Include(p => p.Ingredients).SingleOrDefault(p => p.Id == id);
 
 			if (pizza is null)
 			{
@@ -84,42 +91,45 @@ namespace la_mia_pizzeria_static.Controllers
 			var formModel = new PizzaFormModel
 			{
 				Pizza = pizza,
-				Categories = _context.Categories.ToArray()
+				Categories = _context.Categories.ToArray(),
+				Ingredients = _context.Ingredients.ToArray().Select(i => new SelectListItem(
+					i.Name,
+					i.Id.ToString(),
+					pizza.Ingredients!.Any(_i => _i.Id == i.Id))
+				).ToArray()
 			};
 
-			return View(formModel);
+			formModel.SelectedIngredients = formModel.Ingredients.Where(i => i.Selected).Select(i => i.Value).ToList();
 
+			return View(formModel);
 		}
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public ActionResult Update(int id, PizzaFormModel form)
 		{
-            if (!ModelState.IsValid)
-            {
+			if (!ModelState.IsValid)
+			{
 				form.Categories = _context.Categories.ToArray();
+				form.Ingredients = _context.Ingredients.Select(i => new SelectListItem(i.Name, i.Id.ToString())).ToArray();
+
 				return View(form);
-            }
-
-			//lo faccio per fare savedPizza = form.Pizza;
-			//e anche per il controllo di esistenza del record
-			var savedPizza = _context.Pizzas.AsNoTracking().FirstOrDefault(p => p.Id == id);
-
-			if (savedPizza is null)
-				{
-				return NotFound($"Pizza with id {id} not found.");
 			}
 
-			//savedPizza.Name = form.Pizza.Name;
-			savedPizza = form.Pizza;
-			savedPizza.Id = id; // mi serve per fare il tracking del record altrimenti lo faccio su id = 0
+			var savedPizza = _context.Pizzas.Include(p => p.Ingredients).FirstOrDefault(i => i.Id == id);
 
-			
+			if (savedPizza is null)
+			{
+				return View("NotFound");
+			}
 
-			_context.Pizzas.Update(savedPizza);
+			savedPizza.Name = form.Pizza.Name;
+			savedPizza.Description = form.Pizza.Description;
+			savedPizza.Img = form.Pizza.Img;
+			savedPizza.CategoryId = form.Pizza.CategoryId;
+			savedPizza.Ingredients = form.SelectedIngredients.Select(si => _context.Ingredients.First(i => i.Id == Convert.ToInt32(si))).ToList();
 
 			_context.SaveChanges();
-		
 
 			return RedirectToAction("Index");
 
@@ -127,16 +137,29 @@ namespace la_mia_pizzeria_static.Controllers
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public IActionResult Delete(int id)
+		public IActionResult Delete(int id, PizzaFormModel form)
 		{
-			var pizzaToDelete = _context.Pizzas.FirstOrDefault(p => p.Id == id);
-
-			if (pizzaToDelete is null)
+			if (!ModelState.IsValid)
 			{
-				return NotFound($"Pizza with id {id} not found.");
+				form.Categories = _context.Categories.ToArray();
+				form.Ingredients = _context.Ingredients.Select(i => new SelectListItem(i.Name, i.Id.ToString())).ToArray();
+
+				return View(form);
 			}
 
-			_context.Pizzas.Remove(pizzaToDelete);
+			var savedPizza = _context.Pizzas.Include(p => p.Ingredients).FirstOrDefault(i => i.Id == id);
+
+			if (savedPizza is null)
+			{
+				return View("NotFound");
+			}
+
+			savedPizza.Name = form.Pizza.Name;
+			savedPizza.Description = form.Pizza.Description;
+			savedPizza.Img = form.Pizza.Img;
+			savedPizza.CategoryId = form.Pizza.CategoryId;
+			savedPizza.Ingredients = form.SelectedIngredients.Select(si => _context.Ingredients.First(i => i.Id == Convert.ToInt32(si))).ToList();
+
 			_context.SaveChanges();
 
 			return RedirectToAction("Index");

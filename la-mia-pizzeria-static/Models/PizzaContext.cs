@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Azure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 
 namespace la_mia_pizzeria_static.Models
@@ -8,8 +9,9 @@ namespace la_mia_pizzeria_static.Models
 		public PizzaContext(DbContextOptions<PizzaContext> options) : base(options) { }
 		public DbSet<Pizza> Pizzas { get; set; }
         public DbSet<Category> Categories { get; set; }
+		public DbSet<Ingredient> Ingredients { get; set; }
 
-        public void Seed()
+		public void Seed()
         {
             var pizzaSeed = new Pizza[]
             {
@@ -67,7 +69,29 @@ namespace la_mia_pizzeria_static.Models
                 Categories.AddRange(categorySeed);
             }
 
-            SaveChanges();
+			if (!Ingredients.Any())
+			{
+				var seed = new Ingredient[]
+				{
+					new()
+					{
+						Name = "Tomato"
+					},
+					new()
+					{
+						Name = "Mozzarella"
+					},
+					new()
+					{
+						Name = "EVO oil",
+						Pizzas = pizzaSeed
+					}
+				};
+
+				Ingredients.AddRange(seed);
+			}
+
+			SaveChanges();
         }
     }
 }
