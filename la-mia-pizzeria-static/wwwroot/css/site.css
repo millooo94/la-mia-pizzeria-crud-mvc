@@ -110,3 +110,10 @@ form {
 .gap {
     gap: 8px;
 }
+
+
+.nav-link {
+   
+    color: white !important;
+    
+}

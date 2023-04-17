@@ -5,10 +5,12 @@
     var pizzas = Model;
 }
 
-<div class="pad d-flex justify-content-center">
-    <a href="@Url.Action("Create", "Pizza")" class="btn btn-primary">Create</a>
-</div>
-
+@if (User.IsInRole("Admin"))
+{
+    <div class="pad d-flex justify-content-center">
+        <a href="@Url.Action("Create", "Pizza")" class="btn btn-primary">Create</a>
+    </div>
+}
 
 @if (pizzas.Length is 0)
 {

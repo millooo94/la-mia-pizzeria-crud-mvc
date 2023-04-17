@@ -3,10 +3,12 @@ using la_mia_pizzeria_static.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 
 namespace la_mia_pizzeria_static.Controllers
 {
-    public class PizzaController : Controller
+	[Authorize(Roles = "Admin, User")]
+	public class PizzaController : Controller
     {
 		private readonly ILogger<PizzaController> _logger;
 		private readonly PizzaContext _context;
@@ -30,11 +32,13 @@ namespace la_mia_pizzeria_static.Controllers
             return View(pizzas);
 
         }
-        public IActionResult Privacy()
+
+		public IActionResult Privacy()
         {
             return View();
         }
-        public IActionResult Detail(int id)
+
+		public IActionResult Detail(int id)
         {
             var pizza = _context.Pizzas
                 .Include (p => p.Category)
@@ -48,7 +52,9 @@ namespace la_mia_pizzeria_static.Controllers
 
             return View(pizza);
         }
-        public IActionResult Create()
+
+		[Authorize(Roles = "Admin")]
+		public IActionResult Create()
         {
             var formModel = new PizzaFormModel()
             {
@@ -59,7 +65,8 @@ namespace la_mia_pizzeria_static.Controllers
             return View(formModel);
         }
 
-        [HttpPost]
+		[Authorize(Roles = "Admin")]
+		[HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(PizzaFormModel form)
         {
@@ -79,7 +86,8 @@ namespace la_mia_pizzeria_static.Controllers
 			return RedirectToAction("Index");   
         }
 
-        public ActionResult Update(int id)
+		[Authorize(Roles = "Admin")]
+		public ActionResult Update(int id)
         {
 			var pizza = _context.Pizzas.Include(p => p.Ingredients).SingleOrDefault(p => p.Id == id);
 
@@ -104,6 +112,7 @@ namespace la_mia_pizzeria_static.Controllers
 			return View(formModel);
 		}
 
+		[Authorize(Roles = "Admin")]
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public ActionResult Update(int id, PizzaFormModel form)
@@ -135,6 +144,7 @@ namespace la_mia_pizzeria_static.Controllers
 
 		}
 
+		[Authorize(Roles = "ADMIN")]
 		[HttpPost]
 		[ValidateAntiForgeryToken]
 		public IActionResult Delete(int id)
